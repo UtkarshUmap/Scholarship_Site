@@ -1,4 +1,4 @@
-# IIT Bhilai Scholarship Portal
+# Scholarship Portal
 
 A full-stack scholarship management system for IIT Bhilai with CSV import, document tracking, and advanced search features.
 
