@@ -1,0 +1,8 @@
+things_to_fix.txt
+client/node_modules
+server/node_modules
+client/dist
+server/dist
+client/.env
+server/.env
+server/uploads
