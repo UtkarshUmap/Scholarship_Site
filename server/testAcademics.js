@@ -7,7 +7,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://prococomelon32_db_user:axZbhOgkCOUIaatX@cluster0.ybg128b.mongodb.net/?appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI ;
 
 async function testAcademics() {
   try {
