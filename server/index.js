@@ -7,7 +7,22 @@ const fs = require('fs');
 
 const app = express();
 
-app.use(cors());
+// CORS configuration (minimal change)
+const allowedOrigins = [
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
