@@ -6,10 +6,12 @@ import {
   CornerDownRight, ExternalLink, Upload, Clock, Inbox, Archive
 } from 'lucide-react';
 
-const getFullFileUrl = (path) => {
+const API_URL = '/api';
+
+const getFileViewUrl = (path) => {
   if (!path) return null;
   if (path.startsWith('http')) return path;
-  return path;
+  return `${API_URL}/file/view${path}`;
 };
 
 export default function Applications() {
@@ -31,6 +33,14 @@ export default function Applications() {
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
   const [comment, setComment] = useState('');
+  const [showNeedsChangesModal, setShowNeedsChangesModal] = useState(false);
+  const [needsChangesDoc, setNeedsChangesDoc] = useState(null);
+  const [needsChangesRemark, setNeedsChangesRemark] = useState('');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectDoc, setRejectDoc] = useState(null);
+  const [rejectRemark, setRejectRemark] = useState('');
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailMessage, setEmailMessage] = useState('');
 
   // Separate applications by status
   const needsActionStatuses = ['applied', 'pending', 'under_review', 'documents_pending'];
@@ -607,20 +617,20 @@ export default function Applications() {
                     {selectedApp.documents.map((doc, idx) => (
                       <div key={idx} className={`border-2 rounded-xl overflow-hidden transition-all ${doc.adminRemarks ? 'border-orange-300' : 'border-gray-200 hover:border-gray-300'}`}>
                         <div className="flex items-stretch">
-                          <div className="w-28 bg-gray-50 flex flex-col items-center justify-center p-4 border-r">
+                          <div className="w-28 bg-gray-50 flex flex-col items-center justify-center p-3 border-r gap-2">
                             {doc.filePath ? (
                               <a
-                                href={getFullFileUrl(doc.filePath)}
+                                href={getFileViewUrl(doc.filePath)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex flex-col items-center gap-2 text-iit-primary hover:text-iit-primary/80"
+                                className="flex flex-col items-center gap-1 text-iit-primary hover:text-iit-primary/80 p-2 rounded-lg hover:bg-iit-primary/5"
                               >
-                                <FileText className="w-8 h-8 text-iit-primary" />
+                                <Eye className="w-6 h-6 text-iit-primary" />
                                 <span className="text-xs font-medium">View</span>
                               </a>
                             ) : (
-                              <div className="flex flex-col items-center gap-2 text-gray-400">
-                                <Upload className="w-8 h-8" />
+                              <div className="flex flex-col items-center gap-1 text-gray-400">
+                                <Upload className="w-6 h-6" />
                                 <span className="text-xs">Pending</span>
                               </div>
                             )}
@@ -703,10 +713,9 @@ export default function Applications() {
                             </button>
                             <button
                               onClick={() => {
-                                const remark = prompt('Enter reason for rejection:');
-                                if (remark !== null) {
-                                  handleDocReview(selectedApp._id, idx, 'rejected', remark, '');
-                                }
+                                setRejectDoc({ appId: selectedApp._id, docIndex: idx, docName: doc.name });
+                                setRejectRemark('');
+                                setShowRejectModal(true);
                               }}
                               className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1 ${
                                 doc.status === 'rejected' 
@@ -718,10 +727,9 @@ export default function Applications() {
                             </button>
                             <button
                               onClick={() => {
-                                const remark = prompt('Enter remarks for required changes:');
-                                if (remark !== null) {
-                                  handleDocReview(selectedApp._id, idx, 'needs_changes', remark, '');
-                                }
+                                setNeedsChangesDoc({ appId: selectedApp._id, docIndex: idx, docName: doc.name });
+                                setNeedsChangesRemark('');
+                                setShowNeedsChangesModal(true);
                               }}
                               className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1 ${
                                 doc.status === 'needs_changes' 
@@ -814,14 +822,215 @@ export default function Applications() {
               <div className="flex gap-3 pt-4 border-t border-gray-100">
                 <button
                   onClick={() => {
-                    const msg = prompt('Enter email message:');
-                    if (msg) handleNotify(selectedApp._id, msg);
+                    setEmailMessage('');
+                    setShowEmailModal(true);
                   }}
                   className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Mail size={18} /> Send Email
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNeedsChangesModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <AlertCircle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Request Changes</h3>
+                  <p className="text-white/80 text-sm">Ask student to update document</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Document
+                </label>
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700">
+                  {needsChangesDoc?.docName}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Message to Student <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={needsChangesRemark}
+                  onChange={(e) => setNeedsChangesRemark(e.target.value)}
+                  placeholder="Explain what needs to be changed or updated..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none resize-none"
+                  rows={4}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  The student will see this message when they view their application.
+                </p>
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowNeedsChangesModal(false);
+                  setNeedsChangesDoc(null);
+                  setNeedsChangesRemark('');
+                }}
+                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!needsChangesRemark.trim()) {
+                    return;
+                  }
+                  handleDocReview(needsChangesDoc.appId, needsChangesDoc.docIndex, 'needs_changes', needsChangesRemark, '');
+                  setShowNeedsChangesModal(false);
+                  setNeedsChangesDoc(null);
+                  setNeedsChangesRemark('');
+                }}
+                disabled={!needsChangesRemark.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 transition-all flex items-center gap-2"
+              >
+                <AlertCircle size={18} />
+                Send Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-rose-500 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <XCircle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Reject Document</h3>
+                  <p className="text-white/80 text-sm">Reject this document</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Document
+                </label>
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700">
+                  {rejectDoc?.docName}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Reason for Rejection <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={rejectRemark}
+                  onChange={(e) => setRejectRemark(e.target.value)}
+                  placeholder="Explain why this document is being rejected..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none resize-none"
+                  rows={4}
+                />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectDoc(null);
+                  setRejectRemark('');
+                }}
+                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!rejectRemark.trim()) return;
+                  handleDocReview(rejectDoc.appId, rejectDoc.docIndex, 'rejected', rejectRemark, '');
+                  setShowRejectModal(false);
+                  setRejectDoc(null);
+                  setRejectRemark('');
+                }}
+                disabled={!rejectRemark.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 disabled:opacity-50 transition-all flex items-center gap-2"
+              >
+                <XCircle size={18} />
+                Reject Document
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <Mail className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Send Email to Student</h3>
+                  <p className="text-white/80 text-sm">Send a notification email</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Message <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  placeholder="Type your message to the student..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
+                  rows={4}
+                />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowEmailModal(false);
+                  setEmailMessage('');
+                }}
+                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!emailMessage.trim()) return;
+                  handleNotify(selectedApp._id, emailMessage);
+                  setShowEmailModal(false);
+                  setEmailMessage('');
+                }}
+                disabled={!emailMessage.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 transition-all flex items-center gap-2"
+              >
+                <Mail size={18} />
+                Send Email
+              </button>
             </div>
           </div>
         </div>

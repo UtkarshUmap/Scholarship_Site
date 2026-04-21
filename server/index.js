@@ -10,12 +10,49 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
+
+// MIME types for proper file serving
+const mimeTypes = {
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.xls': 'application/vnd.ms-excel',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+};
+
+// View file inline (displays in browser)
+app.get('/api/file/view/:path(*)', (req, res) => {
+  let relativePath = req.params.path;
+  if (relativePath.startsWith('/')) {
+    relativePath = relativePath.substring(1);
+  }
+  if (relativePath.startsWith('uploads/')) {
+    relativePath = relativePath.substring(8);
+  }
+  
+  const filePath = path.join(uploadsDir, relativePath);
+  const ext = path.extname(filePath).toLowerCase();
+  
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+  
+  res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+  res.setHeader('Content-Disposition', 'inline');
+  res.sendFile(filePath);
+});
+
+// Static files for uploads (fallback)
+app.use('/uploads', express.static(uploadsDir));
 
 // API Routes
 const studentRoutes = require('./routes/students');

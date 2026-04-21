@@ -22,9 +22,12 @@ export default function Scholarships() {
   const [scholarships, setScholarships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [filters, setFilters] = useState({ search: '', isActive: '' });
+  const [filters, setFilters] = useState({ search: '', isActive: '', type: '' });
   const [showModal, setShowModal] = useState(false);
   const [editingScholarship, setEditingScholarship] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deletingName, setDeletingName] = useState('');
   const [formData, setFormData] = useState({
     name: '', provider: '', amount: 0, eligibility: '', deadline: '', 
     maxRecipients: 0, requiredDocuments: [], isActive: true, 
@@ -76,13 +79,21 @@ export default function Scholarships() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this scholarship?')) return;
     try {
       await adminApi.deleteScholarship(id);
       fetchScholarships();
+      setShowDeleteModal(false);
+      setDeletingId(null);
+      setDeletingName('');
     } catch (err) {
       alert('Error deleting scholarship');
     }
+  };
+
+  const confirmDelete = (id, name) => {
+    setDeletingId(id);
+    setDeletingName(name);
+    setShowDeleteModal(true);
   };
 
   const handleToggle = async (id) => {
@@ -153,6 +164,15 @@ export default function Scholarships() {
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
+          <select
+            value={filters.type}
+            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+            className="input w-auto"
+          >
+            <option value="">All Types</option>
+            <option value="internal">Internal</option>
+            <option value="external">External</option>
+          </select>
         </div>
 
         {loading ? (
@@ -168,6 +188,9 @@ export default function Scholarships() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-lg">{scholarship.name}</h3>
+                        <span className={`badge ${scholarship.type === 'external' ? 'badge-purple' : 'badge-info'}`}>
+                          {scholarship.type === 'external' ? 'External' : 'Internal'}
+                        </span>
                         <span className={`badge ${scholarship.isActive ? 'badge-success' : 'badge-gray'}`}>
                           {scholarship.isActive ? 'Active' : 'Inactive'}
                         </span>
@@ -191,7 +214,7 @@ export default function Scholarships() {
                       <button onClick={() => handleEdit(scholarship)} className="p-2 text-blue-600 hover:bg-blue-50 rounded">
                         <Edit size={20} />
                       </button>
-                      <button onClick={() => handleDelete(scholarship._id)} className="p-2 text-red-600 hover:bg-red-50 rounded">
+                      <button onClick={() => confirmDelete(scholarship._id, scholarship.name)} className="p-2 text-red-600 hover:bg-red-50 rounded">
                         <Trash2 size={20} />
                       </button>
                     </div>
@@ -326,6 +349,53 @@ export default function Scholarships() {
                   <button type="submit" className="btn-primary">Save</button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-rose-500 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <Trash2 className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Delete Scholarship</h3>
+                  <p className="text-white/80 text-sm">This action cannot be undone</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-gray-700">
+                Are you sure you want to delete <strong className="text-gray-900">"{deletingName}"</strong>?
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                This will permanently remove the scholarship and all associated applications.
+              </p>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletingId(null);
+                  setDeletingName('');
+                }}
+                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deletingId)}
+                className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all flex items-center gap-2"
+              >
+                <Trash2 size={18} />
+                Delete
+              </button>
             </div>
           </div>
         </div>

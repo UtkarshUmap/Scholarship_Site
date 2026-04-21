@@ -2,16 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { studentAuthApi, studentApplicationsApi } from '../api/student';
 import { 
-  Award, FileText, Clock, CheckCircle, AlertCircle, LogOut, User, 
-  Plus, ExternalLink, ChevronRight, DollarSign, Home, Bell, HelpCircle, FileCheck, TrendingUp
+  Award, FileText, Clock, CheckCircle, AlertCircle, 
+  Plus, ExternalLink, ChevronRight, DollarSign, FileCheck, TrendingUp, User
 } from 'lucide-react';
 
 export default function StudentDashboard() {
   const [user, setUser] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profileError, setProfileError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,7 +27,6 @@ export default function StudentDashboard() {
 
         setUser(userRes.data);
 
-        // Only fetch applications if user has roll number
         if (userRes.data.rollNo) {
           try {
             const appsRes = await studentApplicationsApi.getMyApplications();
@@ -94,124 +91,12 @@ export default function StudentDashboard() {
     total: applications.length,
     accepted: applications.filter(a => a.status === 'accepted').length,
     pending: applications.filter(a => ['pending', 'under_review', 'applied', 'documents_pending'].includes(a.status)).length,
-    totalAmount: applications.filter(a => a.status === 'accepted').reduce((sum, a) => sum + (a.amount || 0), 0),
-    docsPending: applications.reduce((acc, app) => {
-      return acc + (app.documents?.filter(d => d.status === 'needs_changes' || d.status === 'rejected').length || 0);
-    }, 0)
   };
-
-  const navItems = [
-    { icon: Home, label: 'Dashboard', path: '/student/dashboard' },
-    { icon: Award, label: 'Scholarships', path: '/student/apply' },
-    { icon: User, label: 'Profile', path: '/student/profile' },
-    { icon: ExternalLink, label: 'External Request', path: '/student/external-request' },
-  ];
 
   const isProfileComplete = !!user?.rollNo;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-              >
-                {sidebarOpen ? <AlertCircle size={20} /> : <ChevronRight size={20} />}
-              </button>
-              <img src="/IITBhLogo.png" alt="IIT Bhilai" className="h-10 w-10 rounded-xl shadow-md" />
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-gray-900">Scholarship Portal</h1>
-                <p className="text-xs text-gray-500">Student Dashboard</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <Bell size={20} className="text-gray-600" />
-                {stats.docsPending > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                )}
-              </button>
-              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.rollNo || 'Profile incomplete'}</p>
-                </div>
-                <div className="h-10 w-10 bg-gradient-to-br from-iit-primary to-iit-secondary rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-                  {user?.name?.charAt(0)?.toUpperCase() || 'S'}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-white border-r transform transition-all duration-300 z-50 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex flex-col h-full">
-          <div className="p-4 flex-1">
-            <nav className="space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    item.path === '/student/dashboard'
-                      ? 'bg-gradient-to-r from-iit-primary to-iit-secondary text-white shadow-lg shadow-iit-primary/30'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <item.icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              ))}
-            </nav>
-          </div>
-          
-          <div className="p-4 border-t border-gray-100">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="bg-iit-primary/10 p-2 rounded-lg">
-                  <HelpCircle size={18} className="text-iit-primary" />
-                </div>
-                <span className="text-sm font-medium text-gray-700">Need Help?</span>
-              </div>
-              <p className="text-xs text-gray-500 mb-3">Contact the scholarship office for any queries.</p>
-              <Link 
-                to="/student/contact" 
-                className="text-xs text-iit-primary hover:underline font-medium"
-              >
-                Contact Support →
-              </Link>
-            </div>
-            
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 mt-4 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-            >
-              <LogOut size={20} />
-              <span className="font-medium">Logout</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="lg:ml-64 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Profile Completion Alert */}
           {!isProfileComplete && (
             <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl shadow-xl overflow-hidden">
               <div className="p-6 flex flex-col md:flex-row items-start md:items-center gap-4">
@@ -235,7 +120,6 @@ export default function StudentDashboard() {
             </div>
           )}
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg hover:border-blue-200 transition-all group">
               <div className="flex items-center justify-between mb-3">
@@ -271,7 +155,6 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          {/* Applications Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
@@ -386,7 +269,6 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link 
               to="/student/profile" 
@@ -436,9 +318,7 @@ export default function StudentDashboard() {
                 </div>
               </div>
             </Link>
-          </div>
         </div>
-      </main>
-    </div>
-  );
+      </div>
+    );
 }

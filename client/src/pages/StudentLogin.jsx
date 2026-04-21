@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { studentAuthApi } from '../api/student';
 import { clearOtherTokens } from '../utils/auth';
-import { GraduationCap, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Users, ArrowRight } from 'lucide-react';
 
 export default function StudentLogin() {
   const [email, setEmail] = useState('');
@@ -32,10 +32,11 @@ export default function StudentLogin() {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-iit-primary to-iit-primary/80 items-center justify-center p-12">
-        <div className="text-center text-white">
-          <GraduationCap className="w-24 h-24 mx-auto mb-6" />
-          <h1 className="text-4xl font-bold mb-4">IIT Bhilai Scholarship Portal</h1>
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-700 to-gray-800 items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
+        <div className="text-center text-white relative z-10">
+          <img src="/IITBhLogo.png" alt="IIT Bhilai" className="h-28 w-28 mx-auto mb-6 rounded-2xl bg-white p-2 shadow-2xl" />
+          <h1 className="text-4xl font-bold mb-4">Student Portal</h1>
           <p className="text-xl text-white/80">Apply for scholarships and track your applications</p>
         </div>
       </div>
@@ -43,7 +44,8 @@ export default function StudentLogin() {
       <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="lg:hidden text-center mb-8">
-            <GraduationCap className="w-12 h-12 mx-auto text-iit-primary mb-2" />
+            <img src="/IITBhLogo.png" alt="IIT Bhilai" className="h-16 w-16 mx-auto mb-3 rounded-xl bg-white p-2 shadow-lg" />
+            <Users className="w-12 h-12 mx-auto text-gray-700 mb-2" />
             <h2 className="text-2xl font-bold text-gray-900">Student Portal</h2>
           </div>
 
@@ -64,7 +66,7 @@ export default function StudentLogin() {
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email Address
@@ -119,7 +121,7 @@ export default function StudentLogin() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-iit-primary hover:bg-iit-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-iit-primary disabled:opacity-50"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -129,14 +131,19 @@ export default function StudentLogin() {
                     </svg>
                     Signing in...
                   </span>
-                ) : 'Sign In'}
+                ) : (
+                  <span className="flex items-center gap-2">
+                    Sign In
+                    <ArrowRight size={18} />
+                  </span>
+                )}
               </button>
             </div>
 
-            <div className="text-center pt-4">
+            <div className="text-center pt-2">
               <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
-                <Link to="/student-register" className="font-medium text-iit-primary hover:text-iit-primary/80">
+                <Link to="/student-register" className="font-medium text-gray-700 hover:text-gray-900">
                   Register here
                 </Link>
               </p>

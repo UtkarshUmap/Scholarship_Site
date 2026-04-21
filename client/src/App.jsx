@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { useState, useEffect, createContext, useContext } from 'react';
 import api from './api/axios';
 import Layout from './components/Layout';
+import StudentLayout from './components/StudentLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
@@ -10,7 +11,6 @@ import Applications from './pages/Applications';
 import Import from './pages/Import';
 import Settings from './pages/Settings';
 import PublicScholarships from './pages/PublicScholarships';
-import StatusCheck from './pages/StatusCheck';
 import StudentLogin from './pages/StudentLogin';
 import StudentRegister from './pages/StudentRegister';
 import StudentDashboard from './pages/StudentDashboard';
@@ -90,9 +90,8 @@ function App() {
           <Route path="/academics-login" element={<AcademicsLogin />} />
           <Route path="/" element={<PublicScholarships />} />
           <Route path="/scholarships" element={<PublicScholarships />} />
-          <Route path="/status" element={<StatusCheck />} />
           
-          <Route path="/student" element={<StudentRoute><Outlet /></StudentRoute>}>
+          <Route path="/student" element={<StudentRoute><StudentLayout /></StudentRoute>}>
             <Route index element={<Navigate to="/student/dashboard" replace />} />
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="profile" element={<StudentProfile />} />

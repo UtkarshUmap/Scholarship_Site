@@ -18,9 +18,9 @@ export default function Layout() {
 
   const menuItems = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/admin/students', icon: Users, label: 'Students' },
     { path: '/admin/scholarships', icon: Award, label: 'Scholarships' },
     { path: '/admin/applications', icon: FileText, label: 'Applications' },
+    { path: '/admin/students', icon: Users, label: 'Students' },
     { path: '/admin/external-requests', icon: Send, label: 'External Requests' },
     { path: '/admin/document-requests', icon: FileCheck, label: 'Doc Requests' },
     { path: '/admin/import', icon: Upload, label: 'Import Data' },

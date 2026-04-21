@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const { search, isActive, financialYear, program, page = 1, limit = 50 } = req.query;
+    const { search, isActive, financialYear, program, type, page = 1, limit = 50 } = req.query;
     
     const query = {};
     if (search) {
@@ -18,6 +18,7 @@ router.get('/', async (req, res) => {
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (financialYear) query.financialYears = financialYear;
     if (program) query['eligibilityCriteria.programs'] = program;
+    if (type) query.type = type;
 
     const skip = (page - 1) * limit;
     const scholarships = await Scholarship.find(query)

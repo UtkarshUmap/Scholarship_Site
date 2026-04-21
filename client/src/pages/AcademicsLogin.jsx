@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { academicsAuthApi } from '../api/academics';
 import { clearOtherTokens } from '../utils/auth';
-import { GraduationCap, Mail, Lock, Eye, EyeOff, AlertCircle, Users } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Users, ArrowRight } from 'lucide-react';
 
 export default function AcademicsLogin() {
   const [email, setEmail] = useState('');
@@ -18,20 +18,16 @@ export default function AcademicsLogin() {
     setLoading(true);
 
     try {
-      console.log('Attempting login with:', email);
       clearOtherTokens('academicsToken');
       const res = await academicsAuthApi.login({ email, password });
-      console.log('Login response:', res.data);
       
       localStorage.setItem('academicsToken', res.data.token);
       localStorage.setItem('academics', JSON.stringify(res.data.user));
       
-      // Force navigation after state update
       setTimeout(() => {
         navigate('/academics/dashboard', { replace: true });
       }, 100);
     } catch (err) {
-      console.error('Login error:', err);
       setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
@@ -40,9 +36,10 @@ export default function AcademicsLogin() {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-700 to-gray-800 items-center justify-center p-12">
-        <div className="text-center text-white">
-          <Users className="w-24 h-24 mx-auto mb-6" />
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-700 to-gray-800 items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
+        <div className="text-center text-white relative z-10">
+          <img src="/IITBhLogo.png" alt="IIT Bhilai" className="h-28 w-28 mx-auto mb-6 rounded-2xl bg-white p-2 shadow-2xl" />
           <h1 className="text-4xl font-bold mb-4">Academics Portal</h1>
           <p className="text-xl text-white/80">Submit documents for student scholarship applications</p>
         </div>
@@ -51,7 +48,7 @@ export default function AcademicsLogin() {
       <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="lg:hidden text-center mb-8">
-            <Users className="w-12 h-12 mx-auto text-gray-700 mb-2" />
+            <img src="/IITBhLogo.png" alt="IIT Bhilai" className="h-16 w-16 mx-auto mb-3 rounded-xl bg-white p-2 shadow-lg" />
             <h2 className="text-2xl font-bold text-gray-900">Academics Portal</h2>
           </div>
 
@@ -72,7 +69,7 @@ export default function AcademicsLogin() {
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email Address
@@ -137,7 +134,12 @@ export default function AcademicsLogin() {
                     </svg>
                     Signing in...
                   </span>
-                ) : 'Sign In'}
+                ) : (
+                  <span className="flex items-center gap-2">
+                    Sign In
+                    <ArrowRight size={18} />
+                  </span>
+                )}
               </button>
             </div>
           </form>

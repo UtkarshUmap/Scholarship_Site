@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { publicApi } from '../api/public';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Award, Calendar, DollarSign, FileText, ArrowRight, Search, GraduationCap, X, ExternalLink, CheckCircle, Users, Clock, TrendingUp } from 'lucide-react';
 
 export default function PublicScholarships() {
@@ -9,6 +9,32 @@ export default function PublicScholarships() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedScholarship, setSelectedScholarship] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const navigate = useNavigate();
+
+  const handleApply = (scholarship, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const studentToken = localStorage.getItem('studentToken');
+    
+    if (scholarship.type === 'external') {
+      if (scholarship.googleFormLink) {
+        window.open(scholarship.googleFormLink, '_blank');
+      }
+    } else {
+      if (!studentToken) {
+        navigate('/student-login');
+      } else {
+        navigate(`/student/apply?scholarshipId=${scholarship._id}`);
+      }
+    }
+  };
+
+  const handleViewDetails = (scholarship, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedScholarship(scholarship);
+  };
 
   useEffect(() => {
     fetchScholarships();
@@ -41,7 +67,6 @@ export default function PublicScholarships() {
               <span className="text-white font-semibold text-lg">IIT Bhilai Scholarship Portal</span>
             </div>
             <div className="flex items-center gap-4">
-              <Link to="/status" className="text-white/80 hover:text-white text-sm font-medium transition-colors">Check Status</Link>
               <Link to="/student-login" className="text-white/80 hover:text-white text-sm font-medium transition-colors">Student Login</Link>
               <Link to="/login" className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors border border-white/20">
                 Admin
@@ -54,10 +79,7 @@ export default function PublicScholarships() {
       <div className="bg-gradient-to-br from-iit-primary via-iit-secondary to-[#1a2d4a] py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white/90 text-sm mb-6">
-            <Award size={16} className="text-amber-400" />
-            <span>Trusted by 1000+ students</span>
-          </div>
+
           <img src="/IITBhLogo.png" alt="IIT Bhilai" className="h-28 w-28 mx-auto mb-6 rounded-2xl bg-white p-4 shadow-2xl" />
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
             IIT Bhilai Scholarship Portal
@@ -162,10 +184,10 @@ export default function PublicScholarships() {
                         <span>Deadline: {new Date(scholarship.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       </div>
                     )}
-                    {scholarship.requiredDocuments?.length > 0 && (
+                    {Array.isArray(scholarship.requiredDocuments) && scholarship.requiredDocuments.filter(d => d && d.name).length > 0 && (
                       <div className="flex items-center gap-2 text-gray-600">
                         <FileText size={16} className="text-iit-primary" />
-                        <span>{scholarship.requiredDocuments.length} documents required</span>
+                        <span>{scholarship.requiredDocuments.filter(d => d && d.name).length} documents required</span>
                       </div>
                     )}
                   </div>
@@ -178,13 +200,19 @@ export default function PublicScholarships() {
                   )}
                 </div>
                 
-                <div className="px-6 pb-6 pt-0">
+                <div className="px-6 pb-6 pt-0 flex gap-2">
                   <button
-                    onClick={(e) => { e.stopPropagation(); setSelectedScholarship(scholarship); }}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-iit-primary to-iit-secondary text-white rounded-xl font-medium hover:from-iit-secondary hover:to-iit-primary transition-all shadow-lg shadow-iit-primary/20"
+                    onClick={(e) => handleViewDetails(scholarship, e)}
+                    className="flex-1 flex items-center justify-center gap-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all text-sm"
                   >
-                    Check Eligibility
-                    <ArrowRight size={18} />
+                    View Details
+                  </button>
+                  <button
+                    onClick={(e) => handleApply(scholarship, e)}
+                    className="flex-1 flex items-center justify-center gap-1 py-2.5 bg-gradient-to-r from-iit-primary to-iit-secondary text-white rounded-xl font-medium hover:from-iit-secondary hover:to-iit-primary transition-all shadow-lg shadow-iit-primary/20 text-sm"
+                  >
+                    {scholarship.type === 'external' ? 'Apply' : 'Apply'}
+                    <ArrowRight size={16} />
                   </button>
                 </div>
               </div>
@@ -244,19 +272,19 @@ export default function PublicScholarships() {
                 </div>
               )}
 
-              {selectedScholarship.requiredDocuments?.length > 0 && (
+              {Array.isArray(selectedScholarship.requiredDocuments) && selectedScholarship.requiredDocuments.filter(d => d && d.name).length > 0 && (
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                     <FileText size={18} className="text-iit-primary" />
                     Required Documents
                   </h3>
                   <div className="space-y-2">
-                    {selectedScholarship.requiredDocuments.map((doc, idx) => (
+                    {selectedScholarship.requiredDocuments.filter(d => d && d.name).map((doc, idx) => (
                       <div key={idx} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg text-sm">
                         <div className="bg-iit-primary/10 p-1.5 rounded">
                           <FileText size={14} className="text-gray-400" />
                         </div>
-                        <span className="text-gray-700">{doc}</span>
+                        <span className="text-gray-700">{doc.name}</span>
                       </div>
                     ))}
                   </div>
@@ -278,7 +306,7 @@ export default function PublicScholarships() {
                 <p className="text-blue-800 text-sm mb-4 leading-relaxed">
                   Click the button below to fill out the application form. You will need to submit the required documents as mentioned.
                 </p>
-                {selectedScholarship.googleFormLink ? (
+                {selectedScholarship.type === 'external' && selectedScholarship.googleFormLink ? (
                   <a
                     href={selectedScholarship.googleFormLink}
                     target="_blank"
@@ -286,8 +314,26 @@ export default function PublicScholarships() {
                     className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-iit-primary to-iit-secondary text-white rounded-xl font-medium hover:from-iit-secondary hover:to-iit-primary transition-all shadow-lg"
                   >
                     <ExternalLink size={18} />
-                    Apply Now (Google Form)
+                    Apply Now (External Website)
                   </a>
+                ) : selectedScholarship.type === 'internal' ? (
+                  localStorage.getItem('studentToken') ? (
+                    <Link
+                      to={`/student/apply?scholarshipId=${selectedScholarship._id}`}
+                      className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-iit-primary to-iit-secondary text-white rounded-xl font-medium hover:from-iit-secondary hover:to-iit-primary transition-all shadow-lg"
+                    >
+                      Apply Now
+                      <ArrowRight size={18} />
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/student-login"
+                      className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-iit-primary to-iit-secondary text-white rounded-xl font-medium hover:from-iit-secondary hover:to-iit-primary transition-all shadow-lg"
+                    >
+                      Login to Apply
+                      <ArrowRight size={18} />
+                    </Link>
+                  )
                 ) : (
                   <Link
                     to="/student-login"

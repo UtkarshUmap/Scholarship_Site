@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { studentApplicationsApi } from '../api/student';
-import { FileText, Upload, MessageSquare, X, Eye, CheckCircle, XCircle, AlertCircle, Clock, Send, ChevronRight, RefreshCw } from 'lucide-react';
+import { FileText, Upload, MessageSquare, CheckCircle, XCircle, AlertCircle, Clock, Send, RefreshCw, Eye } from 'lucide-react';
 
-const getFullFileUrl = (path) => {
+const API_URL = '/api';
+
+const getFileViewUrl = (path) => {
   if (!path) return null;
   if (path.startsWith('http')) return path;
-  return path;
+  return `${API_URL}/file/view${path}`;
 };
 
 export default function StudentApplicationDetail() {
@@ -119,7 +121,7 @@ export default function StudentApplicationDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-iit-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-500">Loading application...</p>
@@ -142,28 +144,7 @@ export default function StudentApplicationDetail() {
   const statusConfig = applicationStatusColor[application.status] || applicationStatusColor.pending;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <Link to="/student/dashboard" className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <ChevronRight className="w-5 h-5 text-gray-600 rotate-180" />
-              </Link>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">{application.scholarship?.name}</h1>
-                <p className="text-xs text-gray-500">{application.financialYear}</p>
-              </div>
-            </div>
-            <span className={`px-4 py-2 rounded-full text-sm font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
-              {application.status.replace('_', ' ').toUpperCase()}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto p-6">
+    <div>
         {error && (
           <div className="mb-6 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-2xl p-4 shadow-lg">
             <div className="flex items-center gap-3">
@@ -240,19 +221,19 @@ export default function StudentApplicationDetail() {
                           }`}
                         >
                           <div className="flex items-stretch">
-                            <div className="w-28 bg-gray-50 flex flex-col items-center justify-center p-4 border-r">
+                            <div className="w-28 bg-gray-50 flex flex-col items-center justify-center p-3 border-r gap-2">
                               {doc.filePath ? (
                                 <a
-                                  href={getFullFileUrl(doc.filePath)}
+                                  href={getFileViewUrl(doc.filePath)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex flex-col items-center gap-2 text-iit-primary hover:text-iit-primary/80"
+                                  className="flex flex-col items-center gap-1 text-iit-primary hover:text-iit-primary/80 p-2 rounded-lg hover:bg-iit-primary/5"
                                 >
-                                  {getFileIcon(doc.fileType)}
-                                  <span className="text-xs font-medium">View File</span>
+                                  <Eye className="w-6 h-6 text-iit-primary" />
+                                  <span className="text-xs font-medium">View</span>
                                 </a>
                               ) : (
-                                <div className="flex flex-col items-center gap-2 text-gray-400">
+                                <div className="flex flex-col items-center gap-1 text-gray-400">
                                   <Upload className="w-6 h-6" />
                                   <span className="text-xs">Not Uploaded</span>
                                 </div>
@@ -526,7 +507,6 @@ export default function StudentApplicationDetail() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
   );
 }
